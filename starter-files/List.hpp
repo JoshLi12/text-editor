@@ -10,6 +10,8 @@
 #include <iterator> //std::bidirectional_iterator_tag
 #include <cassert>  //assert
 
+using namespace std;
+
 
 template <typename T>
 class List {
@@ -47,12 +49,13 @@ public:
     Node *p = new Node;
     p->datum = datum;
     p->prev = nullptr;
+    p->next = first;
 
     if (empty()) {
-      first = last = p;
+      first = p;
+      last = p;
     }
     else {
-      p->next = first;
       first = p;
     }
     ++_size;
@@ -64,12 +67,11 @@ public:
     p->datum = datum;
     p->next = nullptr;
     p->prev = last;
-
+    
     if (empty()) {
-      first = last = p;
-    }
-    else {
-      last->next = p;
+      first = p;
+      last = p;
+    } else{
       last = p;
     }
     ++_size;
@@ -82,7 +84,14 @@ public:
   void pop_front() {
     assert(!empty());
     Node* to_delete = first;
-    first = first->next;
+    if (size() == 1) {
+      first = nullptr;
+      last = nullptr;
+    }
+    else {
+      first = first->next;
+      first->prev = nullptr;
+    }
     delete to_delete;
     --_size;
   }
@@ -93,7 +102,15 @@ public:
   void pop_back() {
     assert(!empty());
     Node* to_delete = last;
-    last = last->prev;
+    if (size() == 1) {
+      first = nullptr;
+      last = nullptr;
+    }
+    else {
+      last = last->prev;
+      last->next = nullptr;
+    }
+    
     delete to_delete;
     --_size;
   }
@@ -104,6 +121,10 @@ public:
     while (!empty()) {
       pop_front();
     }
+
+    first = nullptr;
+    last = nullptr;
+    _size = 0;
   }
 
   // You should add in a default constructor, destructor, copy constructor,
@@ -136,7 +157,16 @@ private:
 
   //REQUIRES: list is empty
   //EFFECTS:  copies all nodes from other to this
-  void copy_all(const List<T> &other);
+  void copy_all(const List<T> &other) {
+    Node* current = other.first;
+
+    while (current) {
+      push_back(current->datum);
+      current = current->next;
+      ++_size;
+    }
+
+  }
 
   Node *first;   // points to first Node in list, or nullptr if list is empty
   Node *last;    // points to last Node in list, or nullptr if list is empty
@@ -150,13 +180,22 @@ public:
 
     // Add a default constructor here. The default constructor must set both
     // pointer members to null pointers.
+    Iterator() : list_ptr(nullptr), node_ptr(nullptr) {}
 
+    Iterator(const Iterator &other) : list_ptr(other.list_ptr), node_ptr(other.node_ptr) {}
+
+    Iterator &operator=(const Iterator &other) {
+      list_ptr = other.list_ptr;
+      node_ptr = other.node_ptr;
+      return *this;
+    }
 
 
     // Add custom implementations of the destructor, copy constructor, and
     // overloaded assignment operator, if appropriate. If these operations
     // will work correctly without defining these, you should omit them. A user
-    // of the class must be able to copy, assign, and destroy Iterators.
+    // of the class must be able tso copy, assign, and destroy Iterators.
+
 
 
 
@@ -188,6 +227,33 @@ public:
     using pointer = T*;
     using reference = T&;
 
+    // Deference operator
+    T &operator*() const {
+      assert(node_ptr != nullptr);
+      return node_ptr->datum;
+
+    }
+
+    // prefix implement ++
+    Iterator &operator++() {
+      // assert(list_ptr)
+      assert(*this != list_ptr->end());
+      if (node_ptr) {
+        node_ptr = node_ptr->next;
+      }
+      else {
+        node_ptr = list_ptr->first;
+      }
+      return *this;
+    }
+
+    // postfix implement ++
+    Iterator operator++(int) {
+      Iterator copy = *this;
+      operator++();
+      return copy;
+    }
+
     // This operator will be used to test your code. Do not modify it.
     // REQUIRES: Iterator is decrementable. All iterators associated with a
     //           list are decrementable, including end iterators, except for
@@ -217,6 +283,14 @@ public:
       return copy;
     }
 
+    bool operator==(const Iterator &other) const {
+      return list_ptr == other.list_ptr && node_ptr == other.node_ptr;
+    }
+
+    bool operator!=(const Iterator &other) const {
+      return !(list_ptr == other.list_ptr && node_ptr == other.node_ptr);
+    }
+
     // REQUIRES: Iterator is dereferenceable
     // EFFECTS: returns the underlying element by pointer
     // NOTE: T must be a class type to use the syntax it->. If T has a
@@ -233,31 +307,77 @@ public:
 
 
     // add any friend declarations here
-
+    friend class List;
 
     // construct an Iterator at a specific position in the given List
-    Iterator(const List *lp, Node *np);
+    Iterator(const List *lp, Node *np) : list_ptr(lp), node_ptr(np) {}
 
   };//List::Iterator
   ////////////////////////////////////////
 
   // return an Iterator pointing to the first element
-  Iterator begin() const;
+  Iterator begin() const {
+    return Iterator(this, first);
+  }
 
   // return an Iterator pointing to "past the end"
-  Iterator end() const;
+  Iterator end() const {
+    return Iterator(this, last->next);
+  }
 
   //REQUIRES: i is a valid, dereferenceable iterator associated with this list
   //MODIFIES: may invalidate other list iterators
   //EFFECTS: Removes a single element from the list container.
   //         Returns An iterator pointing to the element that followed the
   //         element erased by the function call
-  Iterator erase(Iterator i);
+  Iterator erase(Iterator i) {
+    Node* to_delete = i.node_ptr;
+
+    if (to_delete == first) {
+      first = to_delete->next;
+    }
+    else if (to_delete == last) {
+      last = to_delete->prev;
+    }
+    else {
+      to_delete->prev->next = to_delete->next;
+    }
+    Iterator output(this, to_delete->next);
+    delete to_delete;
+    --_size;
+
+    return output;
+  }
 
   //REQUIRES: i is a valid iterator associated with this list
   //EFFECTS: Inserts datum before the element at the specified position.
   //         Returns an iterator to the the newly inserted element.
-  Iterator insert(Iterator i, const T &datum);
+  Iterator insert(Iterator i, const T &datum) {
+    Node* to_insert = new Node;
+    to_insert->datum = datum;
+
+    Node* current = i.node_ptr;
+
+    to_insert->next = current;
+    to_insert->prev = current->prev;
+
+    current->prev = to_insert;
+
+    if (to_insert == first) {
+      first = to_insert;
+    }
+    else if (to_insert == last) {
+      last = to_insert;
+      to_insert->prev->next = to_insert;
+    }
+    else {
+      to_insert->prev->next = to_insert;
+    }
+
+    ++_size;
+    return Iterator(this, to_insert);
+
+  }
 
 };//List
 
