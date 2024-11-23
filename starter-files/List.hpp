@@ -20,7 +20,7 @@ public:
 
   //EFFECTS:  returns true if the list is empty
   bool empty() const {
-    return first==nullptr;
+    return _size == 0;
   }
 
   //EFFECTS: returns the number of elements in this List
@@ -46,18 +46,18 @@ public:
 
   //EFFECTS:  inserts datum into the front of the list
   void push_front(const T &datum) {
-    Node *p = new Node;
+    Node* p = new Node;
     p->datum = datum;
-    p->prev = nullptr;
-    p->next = first;
 
     if (empty()) {
       first = p;
       last = p;
-    }
-    else {
+    } else {
+      p->next = first;
+      first->prev = p;
       first = p;
     }
+
     ++_size;
   }
 
@@ -65,13 +65,14 @@ public:
   void push_back(const T &datum) {
     Node *p = new Node;
     p->datum = datum;
-    p->next = nullptr;
-    p->prev = last;
-    
+
     if (empty()) {
       first = p;
       last = p;
-    } else{
+
+    } else {
+      p->prev = last;
+      last->next = p;
       last = p;
     }
     ++_size;
@@ -297,6 +298,7 @@ public:
     //       member variable f, then it->f accesses f on the
     //       underlying T element.
     T* operator->() const {
+      cout << &operator*();
       return &operator*();
     }
 
@@ -333,15 +335,22 @@ public:
   Iterator erase(Iterator i) {
     Node* to_delete = i.node_ptr;
 
-    if (to_delete == first) {
+    if (this->size() == 1) {
+      first = nullptr;
+      last = nullptr;
+    }
+    else if (to_delete == first) {
       first = to_delete->next;
+      first->prev = nullptr;
     }
     else if (to_delete == last) {
       last = to_delete->prev;
+      last->next = nullptr;
     }
     else {
       to_delete->prev->next = to_delete->next;
     }
+
     Iterator output(this, to_delete->next);
     delete to_delete;
     --_size;
