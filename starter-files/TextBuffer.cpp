@@ -65,13 +65,8 @@ bool TextBuffer::remove() {
   }
 
   void TextBuffer::move_to_row_start() {
-    while (cursor != data.begin()) {
+    while (cursor != data.begin() && *(std::prev(cursor)) != '\n') {
       --cursor;
-      if (*cursor == '\n') {
-        ++cursor;
-        column = 0;
-        return;
-      }
       --index;
     }
     column = 0;
@@ -183,5 +178,5 @@ int TextBuffer::compute_column() const {
         }
         ++temp_col;
     }
-    return temp_col + 1;
+    return temp_col;
 }
