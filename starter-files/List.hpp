@@ -20,7 +20,10 @@ public:
 
   //EFFECTS:  returns true if the list is empty
   bool empty() const {
-    return _size == 0;
+    if (first == nullptr && last == nullptr && _size == 0) {
+      return true;
+    }
+    return false;
   }
 
   //EFFECTS: returns the number of elements in this List
@@ -246,11 +249,9 @@ public:
 
     // prefix implement ++
     Iterator &operator++() {
-      if (node_ptr->next) {
-        node_ptr = node_ptr->next;
-      } else {
-        node_ptr = nullptr;
-      }
+      assert(node_ptr);
+
+      node_ptr = node_ptr->next;
       return *this;
     }
 

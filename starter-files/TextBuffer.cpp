@@ -58,7 +58,7 @@ bool TextBuffer::remove() {
     if (is_at_end()) {
       return false;
     }
-    data.erase(cursor);
+    cursor = data.erase(cursor);
     return true;
   }
 
@@ -80,9 +80,7 @@ bool TextBuffer::remove() {
 
   void TextBuffer::move_to_row_end() {
     while (!is_at_end() && *cursor != '\n') {
-      ++cursor;
-      ++column;
-      ++index;
+      forward();
     }
   }
 
