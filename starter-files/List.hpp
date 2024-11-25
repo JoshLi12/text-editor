@@ -191,7 +191,8 @@ public:
     // pointer members to null pointers.
     Iterator() : list_ptr(nullptr), node_ptr(nullptr) {}
 
-    Iterator(const Iterator &other) : list_ptr(other.list_ptr), node_ptr(other.node_ptr) {}
+    Iterator(const Iterator &other) : list_ptr(other.list_ptr), 
+    node_ptr(other.node_ptr) {}
 
     Iterator &operator=(const Iterator &other) {
       list_ptr = other.list_ptr;

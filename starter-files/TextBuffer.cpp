@@ -33,7 +33,6 @@ bool TextBuffer::backward() {
 
     if (*cursor == '\n') {
         --row;
-
         column = compute_column();
     }
     else {
@@ -44,13 +43,13 @@ bool TextBuffer::backward() {
   }
 
   void TextBuffer::insert(char c) {
+    data.insert(cursor, c);
     if (c == '\n') {
         ++row;
         column=0;
     } else {
         ++column;
     }
-    data.insert(cursor, c);
     ++index;
 
   }
@@ -60,14 +59,21 @@ bool TextBuffer::remove() {
       return false;
     }
     data.erase(cursor);
-    --index;
     return true;
   }
 
   void TextBuffer::move_to_row_start() {
-    while (cursor != data.begin() && *(std::prev(cursor)) != '\n') {
+    if (cursor == data.end()) {
+        --cursor;
+        --index;
+    }
+    while (cursor != data.begin() && *(cursor) != '\n') {
       --cursor;
       --index;
+    }
+    if (*cursor == '\n') {
+        ++cursor;
+        ++index;
     }
     column = 0;
   }
@@ -81,14 +87,9 @@ bool TextBuffer::remove() {
   }
 
 void TextBuffer::move_to_column(int new_column) {
-    if (new_column == column) {
-      return;
-    }
-    else if (new_column > column) {
+    if (new_column > column) {
       while (column < new_column && !is_at_end() && *cursor != '\n') {
-        ++cursor;
-        ++index;
-        ++column;
+        forward();
       }
     }
     else {
@@ -107,14 +108,15 @@ bool TextBuffer::up() {
     int temp = column;
     move_to_row_start();
     backward();
-    move_to_row_start();
+    // move_to_row_start();
+    move_to_column(temp);
 
-    while (column < temp && *cursor != '\n') {
-        // cout << column << endl;
-        ++cursor;
-        ++index;
-    }
-    column = compute_column();
+    // while (column < temp && !is_at_end() && *cursor != '\n') {
+    //     // cout << column << endl;
+    //     ++cursor;
+    //     ++index;
+    // }
+    // column = compute_column();
 
     return true;
 }
@@ -123,14 +125,16 @@ bool TextBuffer::down() {
     int temp = column;
     move_to_row_end();
     if (is_at_end()) {
-      return false;
+        return false;
     }
     forward();
-     
-    while (column < temp && *cursor != '\n' && !is_at_end()) {
-      ++cursor;
-      ++index;
-      ++column;
+
+    while (column < temp && !is_at_end()) {
+        if (*cursor != '\n') {
+            ++cursor;
+            ++index;
+            ++column;
+        }
     }
     return true;
   }
