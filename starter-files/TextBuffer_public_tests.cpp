@@ -150,6 +150,7 @@ TEST(test_up) {
   }
   ASSERT_EQUAL(buffer.get_row(), 2);
   ASSERT_EQUAL(buffer.get_column(), 10);
+  cout << buffer.get_index() << endl;
   buffer.up();
   ASSERT_EQUAL(buffer.get_row(), 1);
   ASSERT_EQUAL(buffer.get_column(), 5);
@@ -164,9 +165,15 @@ TEST(test_down) {
   for (int i = 0; i < 5; i++) {
     buffer.insert((char)('0'+i));
   }
+
+  // cout << buffer.get_row() << endl;
   buffer.move_to_row_start();
+  // cout << buffer.get_row() << endl;
   buffer.backward();
+  // cout << buffer.get_row() << endl;
   buffer.down();
+  // cout << buffer.get_row() << endl;
+
   ASSERT_EQUAL(buffer.get_row(), 2);
   ASSERT_EQUAL(buffer.get_column(), 5);
 }

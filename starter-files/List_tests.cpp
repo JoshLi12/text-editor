@@ -41,33 +41,64 @@ TEST(test_pop_1) {
     ASSERT_EQUAL(list.size(), 0);
 }
 
-// write code for copy constructor
+TEST(copy_constructor) {
+    List<int> list;
+    list.push_back(1);
+    list.push_back(2);
+    list.push_back(3);
 
-// TEST(copy_constructor) {
-//     List<int> list;
-//     list.push_back(1);
-//     list.push_back(2);
-//     list.push_back(3);
-//     list.push_back(4);
-//     list.push_back(5);
+    List<int> copy(list);
 
-//     List<int> copy = list;
+    ASSERT_EQUAL(copy.size(), 3);
+    ASSERT_EQUAL(*list.begin(), *copy.begin());
+    
+    list.push_back(4);
+    ASSERT_EQUAL(copy.size(), 3);
+    ASSERT_EQUAL(list.size(), 4);
 
-    // ASSERT_EQUAL(list.size(), copy.size());
+    copy.push_back(5);
+    copy.push_back(6);
+    ASSERT_EQUAL(copy.size(), 5);
+    ASSERT_EQUAL(list.size(), 4);
+}
 
-    // List<int>::Iterator it1 = list.begin();
-    // List<int>::Iterator it2 = copy.begin();
+TEST(assignment_operator) {
+    List<int> list1;
+    list1.push_back(1);
+    list1.push_back(2);
+    list1.push_back(3);
 
-    // while (it1 != list.end() && it2 != copy.end()) {
-    //     ASSERT_EQUAL(*it1, *it2)
-    // }
+    List<int> list2;
+    list2.push_back(5);
+    list2 = list1;
 
-    // list.push_back(5);
-    // ASSERT_EQUAL(copy.size(), 5);
+    ASSERT_EQUAL(list2.size(), 3);
+    ASSERT_EQUAL(*list2.begin(), 1);
 
-    // copy.push_back(6);
-    // copy.push_back(7);
-    // ASSERT_EQUAL(list.size(), 6);
+    list1.push_back(5);
+    list1.push_back(6);
+    ASSERT_EQUAL(list2.size(), 3);
+}
+
+TEST(postfix_operator_test) {
+    List<int> list;
+    list.push_back(1);
+    list.push_back(2);
+    list.push_back(3);
+    list.push_back(4);
+
+    List<int>::Iterator it = list.begin();
+
+    List<int>::Iterator postfix_increment = it++;
+    ASSERT_EQUAL(postfix_increment, list.begin());
+    ASSERT_EQUAL(*it, 2);
+
+    it = list.end();
+    List<int>::Iterator postfix_decrement = it--;
+    ASSERT_EQUAL(postfix_decrement, list.end());
+    ASSERT_EQUAL(*it, 4);
+}
+
 
 TEST(iterator_forward_traversal) {
     List<int> list;
@@ -173,8 +204,57 @@ TEST(erasing_middle_node) {
     ASSERT_EQUAL(*it2, 15);
 }
 
+TEST(test_insert_empty) {
+    List<int> list;
 
+    // Inserting into empty list
+    List<int>::Iterator it = list.begin();
+    it = list.insert(it, 5);
+    ASSERT_EQUAL(*it, 5);
+    ASSERT_EQUAL(list.size(), 1);
+    ASSERT_EQUAL(*list.begin(), 5);
+    ASSERT_EQUAL(*(--list.end()), 5);
+}
 
+TEST(test_insert_back) {
+    List<int> list;
+    List<int>::Iterator it = list.begin();
+    list.push_back(5);
+    list.push_back(10);
 
+    it = list.end();
+    it = list.insert(it, 10);
+    ASSERT_EQUAL(*it, 10);
+    ASSERT_EQUAL(list.size(), 3);
+    ASSERT_EQUAL(*(--list.end()), 10);
+}
+
+TEST(test_insert_front) {
+    List<int> list;
+    List<int>::Iterator it = list.begin();
+    list.push_back(5);
+    list.push_back(10);
+
+    it = list.begin();
+    it = list.insert(it, 0);
+    ASSERT_EQUAL(*it, 0);
+    ASSERT_EQUAL(list.size(), 3);
+    ASSERT_EQUAL(*list.begin(), 0);
+}
+
+TEST(test_insert_middle) {
+    List<int> list;
+    list.push_back(5);
+    list.push_back(10);
+    list.push_back(15);
+    List<int>::Iterator it = list.begin();
+
+    ++it;
+    cout << *it << endl;
+
+    it = list.insert(it, 7);
+    ASSERT_EQUAL(*it, 7);
+    ASSERT_EQUAL(list.size(), 4);
+}
 
 TEST_MAIN()

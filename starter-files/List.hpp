@@ -66,15 +66,16 @@ public:
     Node *p = new Node;
     p->datum = datum;
 
-    if (empty()) {
+    if (last == nullptr) {
       first = p;
       last = p;
-
     } else {
       p->prev = last;
       last->next = p;
       last = p;
     }
+    last->next = nullptr;
+
     ++_size;
 
   }
@@ -146,6 +147,14 @@ public:
     copy_all(other);
   }
 
+  // assignment operator
+  List & operator=(const List &rhs) {
+    if (this == &rhs) {return * this;}
+    clear();
+    copy_all(rhs);
+    return *this;
+  }
+
 
 
 private:
@@ -164,7 +173,6 @@ private:
     while (current) {
       push_back(current->datum);
       current = current->next;
-      ++_size;
     }
 
   }
@@ -237,13 +245,10 @@ public:
 
     // prefix implement ++
     Iterator &operator++() {
-      // assert(list_ptr)
-      assert(*this != list_ptr->end());
-      if (node_ptr) {
+      if (node_ptr->next) {
         node_ptr = node_ptr->next;
-      }
-      else {
-        node_ptr = list_ptr->first;
+      } else {
+        node_ptr = nullptr;
       }
       return *this;
     }
@@ -324,7 +329,7 @@ public:
 
   // return an Iterator pointing to "past the end"
   Iterator end() const {
-    return Iterator(this, last->next);
+    return Iterator(this, nullptr);
   }
 
   //REQUIRES: i is a valid, dereferenceable iterator associated with this list
@@ -362,34 +367,38 @@ public:
   //EFFECTS: Inserts datum before the element at the specified position.
   //         Returns an iterator to the the newly inserted element.
   Iterator insert(Iterator i, const T &datum) {
-    Node* to_insert = new Node;
-    to_insert->datum = datum;
+    Node* p = new Node;
+    p->datum = datum;
 
     Node* current = i.node_ptr;
 
-    to_insert->next = current;
-    to_insert->prev = current->prev;
-
-    current->prev = to_insert;
-
-    if (to_insert == first) {
-      first = to_insert;
+    if (empty()) {
+      first = p;
+      last = p;
     }
-    else if (to_insert == last) {
-      last = to_insert;
-      to_insert->prev->next = to_insert;
+    else if (current == first) {
+      first->prev = p;
+      p->next = first;
+      first = p;
+    }
+    else if (current == nullptr) {
+      last->next = p;
+      p->prev = last;
+      last = p;
     }
     else {
-      to_insert->prev->next = to_insert;
+      p->prev = current->prev;
+      p->next = current;
+      current->prev->next = p;
+      current->prev = p;
+      
+      
     }
-
     ++_size;
-    return Iterator(this, to_insert);
-
+    return Iterator(this, p);
   }
 
-};//List
-
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Add your member function implementations below or in the class above

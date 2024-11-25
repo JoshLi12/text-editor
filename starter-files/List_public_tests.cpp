@@ -32,6 +32,7 @@ TEST(test_backward_traversal) {
         --it;
         --j;
         ASSERT_EQUAL(*it, j);
+        cout << *it << endl;
     }
     while(it != list.begin());
     ASSERT_EQUAL(j, 0);
